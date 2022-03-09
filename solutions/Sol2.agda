@@ -1,13 +1,13 @@
----------------------------------------------------------------------------
--- Week 2 exercises for the Logika v računalništvu course at UL FMF      --
--- Lecturer: Andrej Bauer                                                --
--- Teaching Assistant: Danel Ahman                                       --
---                                                                       --
--- Course website: https://ucilnica.fmf.uni-lj.si/course/view.php?id=252 --
--- Lecture notes: http://www.andrej.com/zapiski/ISRM-LOGRAC-2022/        --
----------------------------------------------------------------------------
+------------------------------------------------------------------------------------
+-- Solutions to Week 2 exercises for the Logika v računalništvu course at UL FMF  --
+-- Lecturer: Andrej Bauer                                                         --
+-- Teaching Assistant: Danel Ahman                                                --
+--                                                                                --
+-- Course website: https://ucilnica.fmf.uni-lj.si/course/view.php?id=252          --
+-- Lecture notes: http://www.andrej.com/zapiski/ISRM-LOGRAC-2022/                 --
+------------------------------------------------------------------------------------
 
-module Ex2 where
+module Sol2 where
 
 {-
    ACTION ITEM 1: There are many exercises on this week's exercise sheet.
@@ -99,33 +99,45 @@ postulate
    natural numbers and addition. Hint: Use induction. You might find
    it useful to recall the congruence principle `cong` from lecture.
 -}
+
 +-identityʳ : (n : ℕ) → n + zero ≡ n
-+-identityʳ zero =   -- refleksivnost: x ≡ x , lahko bi samo refl
-   begin 
-      zero + zero 
-   ≡⟨⟩
-      zero
-   ∎   
++-identityʳ zero =
+  begin
+    zero + zero
+  ≡⟨⟩
+    zero
+  ∎
 +-identityʳ (suc n) =
-   begin 
-      suc (n + zero)
-   ≡⟨ cong suc (+-identityʳ n) ⟩  
-       suc n
-   ∎
-   
+  begin
+    (suc n) + zero
+  ≡⟨ cong suc (+-identityʳ n) ⟩
+    suc n
+  ∎
 
 +-identityˡ : (n : ℕ) → zero + n ≡ n
-+-identityˡ n = 
-   begin
-      zero + n 
-   ≡⟨ refl ⟩
-      n 
-   ∎
++-identityˡ n =
+  begin
+    zero + n
+  ≡⟨⟩
+    n
+  ∎
 
 +-suc : (n m : ℕ) → n + (suc m) ≡ suc (n + m)
-+-suc zero m = refl
-+-suc (suc n) m = cong suc (+-suc n m)
-
++-suc zero m =
+  begin
+    zero + (suc m)
+  ≡⟨⟩
+    suc (zero + m)
+  ∎
++-suc (suc n) m =
+  begin
+    suc (n + suc m)
+  ≡⟨ cong suc (+-suc n m) ⟩
+    suc (suc (n + m))
+  ≡⟨⟩
+    suc (suc n + m)
+  ∎
+  
 
 ----------------
 -- Exercise 1 --
@@ -158,8 +170,8 @@ data Maybe (A : Set) : Set where
   nothing : Maybe A
 
 lookup : {A : Set} {n : ℕ} → Vec A n → ℕ → Maybe A
-lookup [] i = nothing
-lookup (x ∷ xs) zero = just x
+lookup []       i       = nothing
+lookup (x ∷ xs) zero    = just x
 lookup (x ∷ xs) (suc i) = lookup xs i
 
 
@@ -198,8 +210,20 @@ lookup-totalᵀ : {n : ℕ}
               → i < n                           -- `i` in `{0,1,...,n-1}`
               → lookup xs i ≡ just ⋆
              
-lookup-totalᵀ (⋆ ∷ xs) zero p = refl
-lookup-totalᵀ (⋆ ∷ xs) (suc i) (s≤s p) = lookup-totalᵀ xs i p
+lookup-totalᵀ (⋆ ∷ xs) zero (s≤s p) =
+  begin
+    lookup (⋆ ∷ xs) zero
+  ≡⟨⟩
+    just ⋆
+  ∎
+lookup-totalᵀ (⋆ ∷ xs) (suc i) (s≤s p) =
+  begin
+    lookup (⋆ ∷ xs) (suc i)
+  ≡⟨⟩
+    lookup xs i
+  ≡⟨ lookup-totalᵀ xs i p ⟩
+    just ⋆
+  ∎
 
 {-
    Note: In the standard library, `⊤` is defined as a record type. Here
@@ -213,7 +237,7 @@ lookup-totalᵀ (⋆ ∷ xs) (suc i) (s≤s p) = lookup-totalᵀ xs i p
 ----------------
 
 {-
-   The `lookup-totalᵀ` lemma above is commonly called an "extrinsic"
+   The above proof `lookup-totalᵀ` is commonly called an "extrinsic"
    proof because we prove the correctness of `lookup` after the fact,
    externally to its (simply typed, regarding the index `i`) definition.
 
@@ -238,8 +262,8 @@ data Fin : ℕ → Set where
   suc  : {n : ℕ} (i : Fin n) → Fin (suc n)
 
 safe-lookup : {A : Set} {n : ℕ} → Vec A n → Fin n → A
-safe-lookup (x ∷ xs) zero = x
-safe-lookup (x ∷ xs) (suc i) = safe-lookup xs i
+safe-lookup (x ∷ xs) zero    = x
+safe-lookup (x ∷ xs) (suc n) = safe-lookup xs n
 
 
 ----------------
@@ -259,9 +283,9 @@ safe-lookup (x ∷ xs) (suc i) = safe-lookup xs i
    the correct type, the yellow highlighting below will disappear.
 -}
 
-nat-to-fin : {n : ℕ} → (i : ℕ) → (p : i < n) → Fin n 
-nat-to-fin zero (s≤s p) = zero
-nat-to-fin (suc i) (s≤s p) = suc (nat-to-fin i p) 
+nat-to-fin : {m : ℕ} → (n : ℕ) → n < m → Fin m
+nat-to-fin zero    (s≤s p) = zero
+nat-to-fin (suc n) (s≤s p) = suc (nat-to-fin n p)
 
 lookup-correct : {A : Set} {n : ℕ}
                → (xs : Vec A n)
@@ -269,8 +293,22 @@ lookup-correct : {A : Set} {n : ℕ}
                → (p : i < n)
                → lookup xs i ≡ just (safe-lookup xs (nat-to-fin i p))
 
-lookup-correct (x ∷ xs) zero (s≤s p) = refl
-lookup-correct (x ∷ xs) (suc i) (s≤s p) = lookup-correct xs i p
+lookup-correct (x ∷ xs) zero (s≤s p) =
+  begin
+    lookup (x ∷ xs) zero
+  ≡⟨⟩
+    just (safe-lookup (x ∷ xs) (nat-to-fin zero (s≤s p)))
+  ∎
+lookup-correct (x ∷ xs) (suc i) (s≤s p) =
+  begin
+    lookup (x ∷ xs) (suc i)
+  ≡⟨⟩
+    lookup xs i
+  ≡⟨ lookup-correct xs i p ⟩
+    just (safe-lookup xs (nat-to-fin i p))
+  ≡⟨⟩
+    just (safe-lookup (x ∷ xs) (nat-to-fin (suc i) (s≤s p)))
+  ∎
 
 
 ----------------
@@ -282,8 +320,7 @@ lookup-correct (x ∷ xs) (suc i) (s≤s p) = lookup-correct xs i p
    vector of length `n + m`.
 -}
 
-take-n : {A : Set} {n m : ℕ} → Vec A (n + m) → Vec A n
-take-n xs = {!!}
+{- We will discuss this exercise and its solution next week. -}
 
 
 ----------------
@@ -296,8 +333,7 @@ take-n xs = {!!}
    by recursion. Use `take-n` and equational reasoning instead.
 -}
 
-take-n' : {A : Set} {n m : ℕ} → Vec A (m + n) → Vec A n
-take-n' xs = {!!}
+{- We will discuss this exercise and its solution next week. -}
 
 
 ----------------
@@ -310,7 +346,7 @@ take-n' xs = {!!}
 -}
 
 vec-list : {A : Set} {n : ℕ} → Vec A n → List A
-vec-list [] = []
+vec-list []       = []
 vec-list (x ∷ xs) = x ∷ vec-list xs
 
 {-
@@ -321,8 +357,9 @@ vec-list (x ∷ xs) = x ∷ vec-list xs
    natural number specifying the length of the returned vector.
 -}
 
-list-vec : {A : Set} → (xs : List A) → Vec A {!!}
-list-vec xs = {!!}
+list-vec : {A : Set} → (xs : List A) → Vec A (length xs)
+list-vec []       = []
+list-vec (x ∷ xs) = x ∷ list-vec xs
 
 
 ----------------
@@ -338,7 +375,20 @@ vec-list-length : {A : Set} {n : ℕ}
                 → (xs : Vec A n)
                 → n ≡ length (vec-list xs)
                 
-vec-list-length xs = {!!}
+vec-list-length {A} [] =
+  begin
+    zero
+  ≡⟨⟩
+    length (vec-list ([] {A}))
+  ∎
+vec-list-length {n = suc n} (x ∷ xs) =
+  begin
+    suc n
+  ≡⟨ cong suc (vec-list-length xs) ⟩
+    suc (length (vec-list xs))
+  ≡⟨⟩
+    length (vec-list (x ∷ xs))
+  ∎
 
 
 ----------------
@@ -368,8 +418,14 @@ Matrix A m n = Vec (Vec A n) m
 -}
 
 _+ᴹ_ : {m n : ℕ} → Matrix ℕ m n → Matrix ℕ m n → Matrix ℕ m n
-xss +ᴹ yss = {!!}
+[]         +ᴹ []         = []
+(xs ∷ xss) +ᴹ (ys ∷ yss) = (xs +ⱽ ys) ∷ (xss +ᴹ yss)
 
+  where
+
+    _+ⱽ_ : {n : ℕ} → Vec ℕ n → Vec ℕ n → Vec ℕ n
+    []       +ⱽ []       = []
+    (x ∷ xs) +ⱽ (y ∷ ys) = (x + y) ∷ (xs +ⱽ ys)
 
 -----------------------------
 -----------------------------
@@ -393,10 +449,7 @@ xss +ᴹ yss = {!!}
    Observe that you have to prove equality between functions.
 -}
 
-list-vec-list : {A : Set}
-              → vec-list ∘ list-vec ≡ id {A = List A}
-              
-list-vec-list = {!!}
+{- We will discuss this exercise and its solution next week. -}
 
 
 -----------------
@@ -413,8 +466,19 @@ list-vec-list = {!!}
    in terms of the transpose of the submatrix without the first row.
 -}
 
+populate : {A : Set} {n : ℕ} → A → Vec A n
+populate {n = zero}  x = []
+populate {n = suc n} x = x ∷ populate x
+
 transpose : {A : Set} {m n : ℕ} → Matrix A m n → Matrix A n m
-transpose xss = {!!}
+transpose []             = populate []
+transpose {A} (xs ∷ xss) = transpose-aux xs (transpose xss)
+
+  where
+
+    transpose-aux : {k l : ℕ} → Vec A l → Matrix A l k → Matrix A l (suc k)
+    transpose-aux []       []         = []
+    transpose-aux (x ∷ xs) (ys ∷ yss) = (x ∷ ys) ∷ transpose-aux xs yss
 
 
 -----------------
@@ -453,7 +517,17 @@ data _</≡/>_ (n m : ℕ) : Set where
 -}
 
 test-</≡/> : (n m : ℕ) → n </≡/> m
-test-</≡/> n m = {!!}
+test-</≡/> zero    zero    = n≡m refl
+test-</≡/> zero    (suc m) = n<m (s≤s z≤n)
+test-</≡/> (suc n) zero    = n>m (s≤s z≤n)
+test-</≡/> (suc n) (suc m) = </≡/>-suc (test-</≡/> n m)
+
+  where
+
+    </≡/>-suc : {n m : ℕ} → n </≡/> m → suc n </≡/> suc m
+    </≡/>-suc (n<m p) = n<m (s≤s p)
+    </≡/>-suc (n≡m p) = n≡m (cong suc p)
+    </≡/>-suc (n>m p) = n>m (s≤s p)
 
 
 -----------------
@@ -507,7 +581,11 @@ data Tree (A : Set) : Set where
 -}
 
 insert : Tree ℕ → ℕ → Tree ℕ
-insert t n = {!!}
+insert empty n = node empty n empty
+insert (node t m u) n with test-</≡/> n m
+... | n<m p = node (insert t n) m u
+... | n≡m p = node t n u
+... | n>m p = node t m (insert u n)
 
 {-
    As a sanity check, prove that inserting 12, 27, and 52 into the above
@@ -517,17 +595,17 @@ insert t n = {!!}
 insert-12 : insert (node (node empty 22 (node empty 32 empty)) 42 (node empty 52 empty)) 12
             ≡
             node (node (node empty 12 empty) 22 (node empty 32 empty)) 42 (node empty 52 empty)
-insert-12 = {!!}
+insert-12 = refl
 
 insert-27 : insert (node (node empty 22 (node empty 32 empty)) 42 (node empty 52 empty)) 27
             ≡
             node (node empty 22 (node (node empty 27 empty) 32 empty)) 42 (node empty 52 empty)
-insert-27 = {!!}            
+insert-27 = refl            
 
 insert-52 : insert (node (node empty 22 (node empty 32 empty)) 42 (node empty 52 empty)) 52
             ≡
             node (node empty 22 (node empty 32 empty)) 42 (node empty 52 empty)
-insert-52 = {!!}
+insert-52 = refl
 
 
 -----------------
@@ -543,8 +621,9 @@ insert-52 = {!!}
 -}
 
 data _∈_ (n : ℕ) : Tree ℕ → Set where
-  {- EXERCISE: the constructors for the `∈` relation go here -}
-
+  here  : {t u : Tree ℕ} → n ∈ node t n u
+  left  : {t u : Tree ℕ} {m : ℕ} → n ∈ t → n ∈ node t m u
+  right : {t u : Tree ℕ} {m : ℕ} → n ∈ u → n ∈ node t m u
 
 {-
    Prove that the tree returned by the `insert` function indeed
@@ -563,7 +642,11 @@ data _∈_ (n : ℕ) : Tree ℕ → Set where
 -}
 
 insert-∈ : (t : Tree ℕ) → (n : ℕ) → n ∈ (insert t n)
-insert-∈ t n = {!!}
+insert-∈ empty n = here
+insert-∈ (node t m u) n with test-</≡/> n m
+... | n<m p = left (insert-∈ t n)
+... | n≡m p = here
+... | n>m p = right (insert-∈ u n)
 
 
 -----------------------------------
@@ -652,11 +735,26 @@ data IsBST : Tree ℕ → Set where
    Hint: You might find it helpful to prove the transitivity of `<∞`.
 -}
 
+≤-trans : {n m k : ℕ} → n ≤ m → m ≤ k → n ≤ k
+≤-trans z≤n     q       = z≤n
+≤-trans (s≤s p) (s≤s q) = s≤s (≤-trans p q)
+
+<-to-≤ : {n m : ℕ} → n < m → n ≤ m
+<-to-≤ {zero} ( s≤s p) = z≤n
+<-to-≤ {suc n} (s≤s p) = s≤s (<-to-≤ p)
+
+<∞-trans : {n m k : ℕ∞} → n <∞ m → m <∞ k → n <∞ k
+<∞-trans -∞<n      q         = -∞<n
+<∞-trans ([]<[] p) ([]<[] q) = []<[] (≤-trans p (<-to-≤ q))
+<∞-trans ([]<[] p) n<+∞      = n<+∞
+<∞-trans n<+∞      n<+∞      = n<+∞
+
 isbst-rec-<∞ : {lower upper : ℕ∞} {t : Tree ℕ}
              → IsBST-rec lower upper t
              → lower <∞ upper
              
-isbst-rec-<∞ p = {!!}
+isbst-rec-<∞ (empty-bst p)  = p
+isbst-rec-<∞ (node-bst p q) = <∞-trans (isbst-rec-<∞ p) (isbst-rec-<∞ q)
 
 {-
    Disclaimer: The `(p : lower <∞ upper)` proof witness in the `empty`
@@ -704,8 +802,24 @@ bst = node-bst
    preserving also the recursively defined `IsBST-rec` relation.
 -}
 
+insert-bst-rec : {lower upper : ℕ∞} → (t : Tree ℕ) → (n : ℕ)
+               → (p : lower <∞ [ n ])
+               → (q : [ n ] <∞ upper)
+               → IsBST-rec lower upper t
+               → IsBST-rec lower upper (insert t n)
+               
+insert-bst-rec empty n p q (empty-bst r) = node-bst (empty-bst p) (empty-bst q)
+insert-bst-rec (node t m u) n p q (node-bst r s) with test-</≡/> n m
+... | n<m v    = node-bst (insert-bst-rec t n p ([]<[] v) r) s
+... | n≡m refl = node-bst r s
+... | n>m v    = node-bst r (insert-bst-rec u n ([]<[] v) q s)
+
 insert-bst : (t : Tree ℕ) → (n : ℕ) → IsBST t → IsBST (insert t n)
-insert-bst t n p = {!!}
+insert-bst empty n empty-bst = node-bst (empty-bst -∞<n) (empty-bst n<+∞)
+insert-bst (node t m u) n (node-bst p q) with test-</≡/> n m
+... | n<m r    = node-bst (insert-bst-rec t n -∞<n ([]<[] r) p) q
+... | n≡m refl = node-bst p q
+... | n>m r    = node-bst p (insert-bst-rec u n ([]<[] r) n<+∞ q)
 
 
 -----------------
@@ -736,11 +850,166 @@ insert-bst t n p = {!!}
    on vectors, etc. So we suggest you leave this one for the very last.
 -}
 
-vec-list-vec : {A : Set} {n : ℕ}
-             → list-vec ∘ vec-list ≡ {!!}
-               
-vec-list-vec = {!!}
+{-
+   Hint 1 solution below.
+-}
 
+vec-list-conv : {A : Set} {n : ℕ}
+              → (xs : Vec A n)
+              → Vec A (length (vec-list xs))
+              
+vec-list-conv []       = []
+vec-list-conv (x ∷ xs) = x ∷ vec-list-conv xs
+
+vec-list-vec' : {A : Set} {n : ℕ}
+              → list-vec ∘ vec-list
+                ≡
+                vec-list-conv {A} {n}
+              
+vec-list-vec' {A} = fun-ext vec-list-vec-aux'           
+
+  where
+
+    vec-list-vec-aux' : {n : ℕ}
+                      → (xs : Vec A n)
+                      → list-vec (vec-list xs) ≡ vec-list-conv xs
+
+    vec-list-vec-aux' [] =
+      begin
+        list-vec (vec-list [])
+      ≡⟨⟩
+        vec-list-conv []
+      ∎
+    vec-list-vec-aux' (x ∷ xs) =
+      begin
+        list-vec (vec-list (x ∷ xs))
+      ≡⟨ cong (λ xs → x ∷ xs) (vec-list-vec-aux' xs) ⟩
+        vec-list-conv (x ∷ xs)
+      ∎
+
+{-
+   Hint 2 solution below.
+
+   Compared to the hint 1 solution above, this one is more satisfactory
+   because the equality is stated in terms of standard equational
+   reasoning machinery, using `subst`, as opposed to using an auxiliary
+   conversion function. For the latter one would still need to prove
+   that this axiliary function is indeed identity on elements.
+-}
+
+fin-to-nat : {n : ℕ} → Fin n → ℕ
+fin-to-nat zero    = zero
+fin-to-nat (suc n) = suc (fin-to-nat n)
+
+vec-list-vec-≡-pointwise : {A : Set} {n : ℕ}
+                         → (xs : Vec A n)
+                         → (i : Fin (length (vec-list xs)))
+                         → (j : Fin n)
+                         → fin-to-nat i ≡ fin-to-nat j
+                         → safe-lookup (list-vec (vec-list xs)) i
+                           ≡
+                           safe-lookup xs j
+                      
+vec-list-vec-≡-pointwise (x ∷ xs) zero zero p =
+  begin
+    safe-lookup (list-vec (vec-list (x ∷ xs))) zero
+  ≡⟨⟩
+    safe-lookup (x ∷ xs) zero
+  ∎
+vec-list-vec-≡-pointwise (x ∷ xs) (suc i) (suc j) p =
+  begin
+    safe-lookup (list-vec (vec-list (x ∷ xs))) (suc i)
+  ≡⟨⟩
+    safe-lookup (list-vec (vec-list xs)) i
+  ≡⟨ vec-list-vec-≡-pointwise xs i j (suc-inj p) ⟩
+    safe-lookup xs j
+  ≡⟨⟩
+    safe-lookup (x ∷ xs) (suc j)
+  ∎
+
+  where
+
+    suc-inj : {n m : ℕ} → suc n ≡ suc m → n ≡ m
+    suc-inj refl = refl
+
+vec-≡-ext : {A : Set} {n m : ℕ}
+             → (xs : Vec A n) (ys : Vec A m)
+             → (p : m ≡ n)
+             → ((i : Fin n) → (j : Fin m)
+                 → fin-to-nat i ≡ fin-to-nat j
+                 → safe-lookup xs i ≡ safe-lookup ys j)
+             → xs ≡ subst (Vec A) p ys
+
+vec-≡-ext {A} [] [] refl q =
+  begin
+    []
+  ≡⟨⟩
+    subst (Vec A) refl []
+  ∎
+vec-≡-ext {A} (x ∷ xs) (y ∷ ys) refl q with q zero zero refl
+... | refl =
+  begin
+    x ∷ xs
+  ≡⟨ cong (λ xs → x ∷ xs) (vec-≡-ext xs ys refl (λ i j p → q (suc i) (suc j) (cong suc p))) ⟩
+    x ∷ (subst (Vec A) refl ys)
+  ≡⟨⟩
+    x ∷ ys
+  ≡⟨⟩
+    y ∷ ys
+  ≡⟨⟩
+    subst (Vec A) refl (y ∷ ys)
+  ∎
+
+{-
+   Below, the first instinct might be to try to prove the equality
+
+     `list-vec (vec-list xs) ≡ subst (Vec A) (vec-list-length xs) xs`
+
+   (under `fun-ext`) naively by induction on the structure of `xs`,
+   but then we would get stuck having to prove the equation
+
+     ```
+     x ∷ subst (Vec A) (vec-list-length xs) xs
+     ≡
+     subst (Vec A) (vec-list-length (x ∷ xs)) (x ∷ xs)
+     ```
+
+   i.e., having to push the substitustivity property through the
+   constructors of `Vec`. You could try to use `with` to pattern match
+   on `vec-list-length xs` and try to force it to be `refl`, but Agda
+   would greet you with an error message saying it cannot figure out
+   whether that could be the case. Instead, you need to generalise the
+   statement you are trying to prove to a form, where `subst` ends up
+   being computed away (applied to `refl`) in the inductive steps of
+   the proof or where it just is not in the way any more.
+
+   Above is one possibility for doing this using the following strategy:
+
+   - using extensional equality principle for vectors (if two vectors
+     have equal elements at all indices, then the vectors themselves
+     are equal);
+
+   - generalising this extensionality principle to work with vectors
+     of length `n` and `m` that are not equal on the nose, but this is
+     rather witnessed through an auxiliary proof `p : m ≡ n`; and
+
+   - reasoning about the equality of `Fin n` and `Fin m` indices through
+     their translation into (the non-dependent) natural numbers, so as
+     to avoid having to use `subst` to state the equality of these indices,
+     and thus avoid having to push `subst` through their constructors
+     (which would cause similar problems as the equality for `x ∷ ...`).
+-}
+
+vec-list-vec : {A : Set} {n : ℕ}
+             → list-vec ∘ vec-list
+               ≡
+               (λ (xs : Vec A n) → subst (Vec A) (vec-list-length xs) xs)
+               
+vec-list-vec = fun-ext (λ xs → vec-≡-ext
+                                 (list-vec (vec-list xs))
+                                 xs
+                                 (vec-list-length xs)
+                                 (vec-list-vec-≡-pointwise xs))
 
 -----------------------------------
 -----------------------------------
@@ -748,4 +1017,3 @@ vec-list-vec = {!!}
 -----------------------------------
 -----------------------------------
 
- 
