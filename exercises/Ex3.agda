@@ -83,7 +83,8 @@ take-n {n = suc  n} (x ∷ xs) = x ∷ take-n xs
 -}
 
 take-n' : {A : Set} {n m : ℕ} → Vec A (m + n) → Vec A n
-take-n' {A} {n} {m} xs =  {!   !} --take-n {subst (Vec A) ? }
+take-n' {A} {n} {m} xs = take-n (subst (Vec A) (+-comm m n) xs)
+
 
 
 ----------------

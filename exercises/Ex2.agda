@@ -99,15 +99,32 @@ postulate
    natural numbers and addition. Hint: Use induction. You might find
    it useful to recall the congruence principle `cong` from lecture.
 -}
-
 +-identityʳ : (n : ℕ) → n + zero ≡ n
-+-identityʳ n = {!!}
++-identityʳ zero =   -- refleksivnost: x ≡ x , lahko bi samo refl
+   begin 
+      zero + zero 
+   ≡⟨⟩
+      zero
+   ∎   
++-identityʳ (suc n) =
+   begin 
+      suc (n + zero)
+   ≡⟨ cong suc (+-identityʳ n) ⟩  
+       suc n
+   ∎
+   
 
 +-identityˡ : (n : ℕ) → zero + n ≡ n
-+-identityˡ n = {!!}
++-identityˡ n = 
+   begin
+      zero + n 
+   ≡⟨ refl ⟩
+      n 
+   ∎
 
 +-suc : (n m : ℕ) → n + (suc m) ≡ suc (n + m)
-+-suc n m = {!!}
++-suc zero m = refl
++-suc (suc n) m = cong suc (+-suc n m)
 
 
 ----------------
@@ -141,7 +158,9 @@ data Maybe (A : Set) : Set where
   nothing : Maybe A
 
 lookup : {A : Set} {n : ℕ} → Vec A n → ℕ → Maybe A
-lookup xs i = {!!}
+lookup [] i = nothing
+lookup (x ∷ xs) zero = just x
+lookup (x ∷ xs) (suc i) = lookup xs i
 
 
 ----------------
@@ -179,7 +198,8 @@ lookup-totalᵀ : {n : ℕ}
               → i < n                           -- `i` in `{0,1,...,n-1}`
               → lookup xs i ≡ just ⋆
              
-lookup-totalᵀ xs i p = {!!}
+lookup-totalᵀ (⋆ ∷ xs) zero p = refl
+lookup-totalᵀ (⋆ ∷ xs) (suc i) (s≤s p) = lookup-totalᵀ xs i p
 
 {-
    Note: In the standard library, `⊤` is defined as a record type. Here
@@ -218,7 +238,8 @@ data Fin : ℕ → Set where
   suc  : {n : ℕ} (i : Fin n) → Fin (suc n)
 
 safe-lookup : {A : Set} {n : ℕ} → Vec A n → Fin n → A
-safe-lookup xs i = {!!}
+safe-lookup (x ∷ xs) zero = x
+safe-lookup (x ∷ xs) (suc i) = safe-lookup xs i
 
 
 ----------------
@@ -238,8 +259,9 @@ safe-lookup xs i = {!!}
    the correct type, the yellow highlighting below will disappear.
 -}
 
-nat-to-fin : {!!}
-nat-to-fin = {!!}
+nat-to-fin : {n : ℕ} → (i : ℕ) → (p : i < n) → Fin n 
+nat-to-fin zero (s≤s p) = zero
+nat-to-fin (suc i) (s≤s p) = suc (nat-to-fin i p) 
 
 lookup-correct : {A : Set} {n : ℕ}
                → (xs : Vec A n)
@@ -247,7 +269,8 @@ lookup-correct : {A : Set} {n : ℕ}
                → (p : i < n)
                → lookup xs i ≡ just (safe-lookup xs (nat-to-fin i p))
 
-lookup-correct x i p = {!!}
+lookup-correct (x ∷ xs) zero (s≤s p) = refl
+lookup-correct (x ∷ xs) (suc i) (s≤s p) = lookup-correct xs i p
 
 
 ----------------
@@ -260,7 +283,8 @@ lookup-correct x i p = {!!}
 -}
 
 take-n : {A : Set} {n m : ℕ} → Vec A (n + m) → Vec A n
-take-n xs = {!!}
+take-n {n = zero} xs = []
+take-n {n = suc n} (x ∷ xs) = x ∷ take-n xs
 
 
 ----------------
@@ -274,7 +298,7 @@ take-n xs = {!!}
 -}
 
 take-n' : {A : Set} {n m : ℕ} → Vec A (m + n) → Vec A n
-take-n' xs = {!!}
+take-n' = {!   !} -- {A} {n} {m} xs = take-n (subst (Vec A) (+-comm m n) xs)
 
 
 ----------------
@@ -287,7 +311,8 @@ take-n' xs = {!!}
 -}
 
 vec-list : {A : Set} {n : ℕ} → Vec A n → List A
-vec-list xs = {!!}
+vec-list [] = []
+vec-list (x ∷ xs) = x ∷ vec-list xs
 
 {-
    Define a function from lists to vectors that is identity on the
@@ -297,8 +322,9 @@ vec-list xs = {!!}
    natural number specifying the length of the returned vector.
 -}
 
-list-vec : {A : Set} → (xs : List A) → Vec A {!!}
-list-vec xs = {!!}
+list-vec : {A : Set} → (xs : List A) → Vec A (length xs)
+list-vec [] = []
+list-vec (x ∷ xs) = x ∷ list-vec xs
 
 
 ----------------
@@ -314,7 +340,21 @@ vec-list-length : {A : Set} {n : ℕ}
                 → (xs : Vec A n)
                 → n ≡ length (vec-list xs)
                 
-vec-list-length xs = {!!}
+vec-list-length {A} [] = 
+  begin
+    zero
+  ≡⟨⟩
+   length (vec-list {A} [])
+  ∎
+--refl
+vec-list-length {n = suc n} (x ∷ xs) = 
+   begin
+      suc n
+   ≡⟨ cong suc (vec-list-length xs) ⟩
+      suc (length (vec-list (xs)))
+   ≡⟨ refl ⟩
+    {! length (vec-list (x ∷ xs)) !} 
+   ∎
 
 
 ----------------
@@ -344,7 +384,13 @@ Matrix A m n = Vec (Vec A n) m
 -}
 
 _+ᴹ_ : {m n : ℕ} → Matrix ℕ m n → Matrix ℕ m n → Matrix ℕ m n
-xss +ᴹ yss = {!!}
+[] +ᴹ [] = []
+(xs ∷ xss) +ᴹ (ys ∷ yss) = (xs +ⱽ ys) ∷ (xss +ᴹ yss)
+  where
+    _+ⱽ_ : {n : ℕ} → Vec ℕ n → Vec ℕ n → Vec ℕ n
+    [] +ⱽ [] = []
+    (x ∷ xs) +ⱽ (y ∷ ys) = (x + y) ∷ (xs +ⱽ ys)
+    
 
 
 -----------------------------
@@ -372,7 +418,7 @@ xss +ᴹ yss = {!!}
 list-vec-list : {A : Set}
               → vec-list ∘ list-vec ≡ id {A = List A}
               
-list-vec-list = {!!}
+list-vec-list  = {! !}
 
 
 -----------------
@@ -389,8 +435,18 @@ list-vec-list = {!!}
    in terms of the transpose of the submatrix without the first row.
 -}
 
+populate : {A : Set} {n : ℕ} → A → Vec A n
+populate {n = zero} x = []
+populate {n = suc n} x = x ∷ populate x
+
+
 transpose : {A : Set} {m n : ℕ} → Matrix A m n → Matrix A n m
-transpose xss = {!!}
+transpose [] = populate []
+transpose {A} (xs ∷ xss) = aux-trans xs (transpose xss)
+   where
+    aux-trans : {k l : ℕ} → Vec A l → Matrix A l k → Matrix A l (suc k)
+    aux-trans [] [] = []
+    aux-trans (x ∷ xs) (M ∷ M₁) = ( x  ∷ M) ∷ aux-trans xs M₁ 
 
 
 -----------------
@@ -429,7 +485,10 @@ data _</≡/>_ (n m : ℕ) : Set where
 -}
 
 test-</≡/> : (n m : ℕ) → n </≡/> m
-test-</≡/> n m = {!!}
+test-</≡/> zero zero = n≡m refl
+test-</≡/> zero (suc m) = n<m (s≤s  z≤n)
+test-</≡/> (suc n) zero = n>m ((s≤s  z≤n))
+test-</≡/> (suc n) (suc m) = {! cong ?!}
 
 
 -----------------
@@ -724,3 +783,5 @@ vec-list-vec = {!!}
 -----------------------------------
 -----------------------------------
 
+ 
+ 
