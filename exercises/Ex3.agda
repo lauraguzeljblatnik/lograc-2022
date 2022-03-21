@@ -119,7 +119,19 @@ list-vec (x ∷ xs) = x ∷ list-vec xs
 list-vec-list : {A : Set}
               → vec-list ∘ list-vec ≡ id {A = List A}
 
-list-vec-list = {!  !}
+list-vec-list {A}  = fun-ext list-vec-list-aux
+   where
+      list-vec-list-aux : (xs : List A) → vec-list (list-vec xs) ≡ xs
+      list-vec-list-aux [] =  refl
+      list-vec-list-aux (x ∷ xs) = 
+         begin
+         vec-list (list-vec (x ∷ xs))
+         ≡⟨ refl ⟩
+         x ∷ vec-list ( list-vec xs )
+         ≡⟨ cong (x ∷_) (list-vec-list-aux xs) ⟩
+         x ∷ xs
+         ∎
+
 
 {-
    Note: The dual lemma, showing that `list-vec` is the left inverse
@@ -207,7 +219,21 @@ list-ext : {A : Set} {xs ys : List A}
               → safe-list-lookup xs i p ≡ safe-list-lookup ys i q)
          → xs ≡ ys
 
-list-ext = {!!}
+list-ext {xs = []} {ys = []}  p q = refl
+list-ext {xs = x ∷ xs} {ys = y ∷ ys} p q = 
+   begin
+      x ∷ xs
+   ≡⟨ cong (_∷ xs) (q zero ((s≤s z≤n)) ((s≤s z≤n))) ⟩
+      y ∷  xs
+   ≡⟨ cong ((y ∷_)) (list-ext ((suc-inj p)) 
+         λ i p' q' → q (suc i) (s≤s p') (s≤s q')) ⟩
+      y ∷ ys
+   ∎   
+
+    where
+
+      suc-inj : {n m : ℕ} → _≡_ {A = ℕ} (suc n) (suc m) → n ≡ m
+      suc-inj refl = refl
 
 {-
    Notice that we have generalised this statement a bit compared
@@ -300,7 +326,7 @@ to∘from Σ-assoc' _ = refl
       map (from iso) (map (to iso) xs)
     ≡⟨ sym  (map-compose xs)  ⟩ 
       map (from iso ∘ to iso) xs
-    ≡⟨ cong {!  !} {!   !} ⟩
+    ≡⟨ {!   !} ⟩
       map id xs
     ≡⟨ {!   !} ⟩  
       xs 

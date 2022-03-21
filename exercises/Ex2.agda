@@ -53,6 +53,7 @@ module Ex2 where
 -}
 
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _≤_; z≤n; s≤s)
+open import Data.Nat.Properties  using (+-comm)
 open import Data.List using (List; []; _∷_; length)
 open import Function using (id; _∘_)
 
@@ -298,7 +299,7 @@ take-n {n = suc n} (x ∷ xs) = x ∷ take-n xs
 -}
 
 take-n' : {A : Set} {n m : ℕ} → Vec A (m + n) → Vec A n
-take-n' = {!   !} -- {A} {n} {m} xs = take-n (subst (Vec A) (+-comm m n) xs)
+take-n'{A} {n} {m} xs = take-n (subst (Vec A) (+-comm m n) xs) 
 
 
 ----------------
@@ -353,7 +354,7 @@ vec-list-length {n = suc n} (x ∷ xs) =
    ≡⟨ cong suc (vec-list-length xs) ⟩
       suc (length (vec-list (xs)))
    ≡⟨ refl ⟩
-    {! length (vec-list (x ∷ xs)) !} 
+    length (vec-list (x ∷ xs)) 
    ∎
 
 
@@ -418,8 +419,19 @@ _+ᴹ_ : {m n : ℕ} → Matrix ℕ m n → Matrix ℕ m n → Matrix ℕ m n
 list-vec-list : {A : Set}
               → vec-list ∘ list-vec ≡ id {A = List A}
               
-list-vec-list  = {! !}
-
+list-vec-list {A} = fun-ext list-vec-list-aux
+   where 
+      list-vec-list-aux : (xs : List A)
+                      → vec-list (list-vec xs) ≡ xs
+      list-vec-list-aux [] = refl
+      list-vec-list-aux (x ∷ xs) = 
+         begin
+            vec-list (list-vec (x ∷ xs))
+         ≡⟨ refl ⟩ 
+            x ∷ vec-list (list-vec xs)
+         ≡⟨ cong (x ∷_) (list-vec-list-aux xs) ⟩
+            x ∷ xs
+         ∎   
 
 -----------------
 -- Exercise 11 --
@@ -488,7 +500,12 @@ test-</≡/> : (n m : ℕ) → n </≡/> m
 test-</≡/> zero zero = n≡m refl
 test-</≡/> zero (suc m) = n<m (s≤s  z≤n)
 test-</≡/> (suc n) zero = n>m ((s≤s  z≤n))
-test-</≡/> (suc n) (suc m) = {! cong ?!}
+test-</≡/> (suc n) (suc m) = aux-test (test-</≡/> n m)
+   where
+      aux-test  : {n m : ℕ} → n </≡/> m → suc n </≡/> suc m 
+      aux-test (n<m x) = n<m (s≤s x)
+      aux-test (n≡m x) = n≡m (cong suc x)
+      aux-test (n>m x) = n>m (s≤s x)
 
 
 -----------------
@@ -542,7 +559,12 @@ data Tree (A : Set) : Set where
 -}
 
 insert : Tree ℕ → ℕ → Tree ℕ
-insert t n = {!!}
+insert empty n = node empty n empty
+insert (node t m u) n with test-</≡/> n m 
+... | n<m p = node (insert t n) m u
+... | n≡m p = node t n u
+... | n>m p = node t m (insert u n)
+
 
 {-
    As a sanity check, prove that inserting 12, 27, and 52 into the above
@@ -552,17 +574,17 @@ insert t n = {!!}
 insert-12 : insert (node (node empty 22 (node empty 32 empty)) 42 (node empty 52 empty)) 12
             ≡
             node (node (node empty 12 empty) 22 (node empty 32 empty)) 42 (node empty 52 empty)
-insert-12 = {!!}
+insert-12 = refl
 
 insert-27 : insert (node (node empty 22 (node empty 32 empty)) 42 (node empty 52 empty)) 27
             ≡
             node (node empty 22 (node (node empty 27 empty) 32 empty)) 42 (node empty 52 empty)
-insert-27 = {!!}            
+insert-27 = refl            
 
 insert-52 : insert (node (node empty 22 (node empty 32 empty)) 42 (node empty 52 empty)) 52
             ≡
             node (node empty 22 (node empty 32 empty)) 42 (node empty 52 empty)
-insert-52 = {!!}
+insert-52 = refl
 
 
 -----------------
@@ -578,6 +600,11 @@ insert-52 = {!!}
 -}
 
 data _∈_ (n : ℕ) : Tree ℕ → Set where
+   here : {t u : Tree ℕ} → n ∈ node t n u
+   left : {t u : Tree ℕ} {m : ℕ} → n ∈ t → n ∈ node t m u
+   right : {t u : Tree ℕ} {m : ℕ} → n ∈ u → n ∈ node t m u
+
+   
   {- EXERCISE: the constructors for the `∈` relation go here -}
 
 
@@ -598,8 +625,11 @@ data _∈_ (n : ℕ) : Tree ℕ → Set where
 -}
 
 insert-∈ : (t : Tree ℕ) → (n : ℕ) → n ∈ (insert t n)
-insert-∈ t n = {!!}
-
+insert-∈ empty n = here
+insert-∈ (node t x u) n with test-</≡/> n x
+... | n<m p = left (insert-∈ t n)
+... | n≡m p = here
+... | n>m p = right (insert-∈ u n)
 
 -----------------------------------
 -----------------------------------
