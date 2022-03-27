@@ -49,12 +49,16 @@ open module ND = Ex5.NaturalDeduction AtomicFormula
 ⇒-contravariant : (φ ψ ξ : Formula)
                 → [] ⊢ (φ ⇒ ψ) ⇒ (ψ ⇒ ξ) ⇒ φ ⇒ ξ
            
-⇒-contravariant φ ψ ξ = {!!}
+⇒-contravariant φ ψ ξ = ⇒-intro (⇒-intro (⇒-intro 
+      (⇒-elim (hyp (ψ ⇒ ξ)) 
+      (⇒-elim (hyp (φ ⇒ ψ)) (hyp φ)))))
 
 ⇒-covariant : (φ ψ ξ : Formula)
             → [] ⊢ (φ ⇒ ψ) ⇒ (ξ ⇒ φ) ⇒ ξ ⇒ ψ
             
-⇒-covariant φ ψ ξ = {!!}
+⇒-covariant φ ψ ξ = ⇒-intro (⇒-intro (⇒-intro 
+         (⇒-elim (hyp (φ ⇒ ψ)) 
+         (⇒-elim (hyp (ξ ⇒ φ)) (hyp ξ)))))
 
 {-
    Next, show that `⇒` and `∧` form an adjunction.
@@ -63,7 +67,12 @@ open module ND = Ex5.NaturalDeduction AtomicFormula
 ⇒-∧-adjunction : (φ ψ ξ : Formula)
                → [] ⊢ (φ ⇒ ψ ⇒ ξ) ⇔ φ ∧ ψ ⇒ ξ
            
-⇒-∧-adjunction φ ψ ξ = {!!}
+⇒-∧-adjunction φ ψ ξ = ∧-intro 
+      (⇒-intro (⇒-intro (⇒-elim 
+         (⇒-elim (hyp (φ ⇒ ψ ⇒ ξ)) (∧-elim₁ (hyp (φ ∧ ψ)))) 
+         (∧-elim₂ (hyp (φ ∧ ψ)))))) 
+      (⇒-intro (⇒-intro (⇒-intro (⇒-elim 
+         (hyp (φ ∧ ψ ⇒ ξ)) (∧-intro (hyp φ) (hyp ψ))))))
 
 {-
    Finally, show that `⇒` preserves `⊤` and `∧` in its second
@@ -73,7 +82,9 @@ open module ND = Ex5.NaturalDeduction AtomicFormula
 ⇒-preserves-⊤ : (φ : Formula)
               → [] ⊢ ⊤ ⇔ φ ⇒ ⊤
 
-⇒-preserves-⊤ φ = {!!}
+⇒-preserves-⊤ φ = ∧-intro 
+   (⇒-intro (⇒-intro (hyp ⊤))) 
+   (⇒-intro (⇒-elim (hyp (φ ⇒ ⊤)) {!   !}))
 
 ⇒-preserves-∧ : (φ ψ ξ : Formula)
               → [] ⊢ φ ⇒ ψ ∧ ξ ⇔ (φ ⇒ ψ) ∧ (φ ⇒ ξ)
@@ -128,12 +139,17 @@ demorgan₄ : (φ ψ : Formula)
           → (LEM : {Δ : Hypotheses} → (ξ : Formula) → Δ ⊢ ξ ∨ ¬ ξ)  -- LEM assumption
           → [] ⊢ ¬ (φ ∧ ψ) ⇒ ¬ φ ∨ ¬ ψ
 
-demorgan₄ φ ψ LEM = {!!}
+demorgan₄ φ ψ LEM = ⇒-intro (∨-elim 
+         (LEM φ) 
+         (∨-intro₂ (⇒-intro (⇒-elim 
+                  (hyp (¬ (φ ∧ ψ))) 
+                  (∧-intro (hyp φ) (hyp ψ))))) 
+         (∨-intro₁ (hyp (¬ φ))))
 
 demorgan₄' : (φ ψ : Formula)
            → [ φ ∨ ¬ φ ] ⊢ ¬ (φ ∧ ψ) ⇒ ¬ φ ∨ ¬ ψ
 
-demorgan₄' φ ψ = {!!}
+demorgan₄' φ ψ = {!   !}
 
 
 ----------------
@@ -149,10 +165,15 @@ lem-dne : (φ : Formula)
         → (LEM : {Δ : Hypotheses} → (ξ : Formula) → Δ ⊢ ξ ∨ ¬ ξ)    -- LEM assumption
         → [] ⊢ ¬ ¬ φ ⇒ φ                                            -- DNE conclusion
 
-lem-dne φ LEM = {!!}
+lem-dne φ LEM = ⇒-intro (∨-elim 
+      (LEM φ) (hyp φ) (⊥-elim (¬-elim (hyp (¬ φ )) (hyp ((¬ (¬ φ )))))))
 
 dne-lem : (φ : Formula)
         → (DNE : {Δ : Hypotheses} → (ξ : Formula) → Δ ⊢ ¬ ¬ ξ ⇒ ξ)  -- DNE assumption
         → [] ⊢ φ ∨ ¬ φ                                              -- LEM conclusion
 
-dne-lem φ DNE = {!!}
+dne-lem φ DNE = ⇒-elim 
+            (DNE (φ ∨ ¬ φ)) 
+            (⇒-intro (⇒-elim (hyp (¬ (φ ∨ ¬ φ))) 
+                              (∨-intro₂ (⇒-intro (⇒-elim 
+                                 (hyp (¬ (φ ∨ ¬ φ))) (∨-intro₁ (hyp φ)))))))

@@ -92,7 +92,7 @@ Env = AtomicFormula → ℙ
 -}
 
 _implies_ : ℙ → ℙ → ℙ
-b₁ implies b₂ = {!!}
+b₁ implies b₂ = (not b₁) or b₂
 
 {-
    The recursively defined interpretation function for formulae.
@@ -275,7 +275,15 @@ soundness : {Δ : Hypotheses}
           → {η : Env}
           → ⟦ Δ ⟧ₑ η ≤ ⟦ φ ⟧ η
 
-soundness (weaken {Δ₁} {Δ₂} φ {ψ} d) {η} = {!!}
+soundness (weaken {Δ₁} {Δ₂} φ {ψ} d) {η} = beginᵇ
+    ⟦ Δ₁ ++ φ ∷ Δ₂ ⟧ₑ η 
+  ≤⟨ {!   !} ⟩ 
+    {!   !}
+  ≡ᵇ⟨ {!   !} ⟩ 
+    ⟦ Δ₁ ++ Δ₂ ⟧ₑ η
+  ≤⟨ soundness d ⟩   
+  ⟦ ψ ⟧ η
+  ∎ᵇ
     
 soundness (contract {Δ₁} {Δ₂} φ {ψ} d) {η} =
   beginᵇ
